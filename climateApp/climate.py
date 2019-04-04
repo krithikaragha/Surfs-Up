@@ -12,7 +12,7 @@ from flask import Flask, jsonify
 ####################################
 # Database Setup
 ####################################
-engine = create_engine("sqlite://Resources/hawaii.sqlite")
+engine = create_engine("sqlite:///hawaii.sqlite")
 
 # Reflect an existing database into a new model
 Base = automap_base()
@@ -39,29 +39,30 @@ climateApp = Flask(__name__)
 @climateApp.route("/")
 def welcome():
      return (
-        f"Welcome to Climate API!<br/>"
-        f"Available Routes:<br/>"
-        f"/api/v1.0/precipitation"
-        f"/api/v1.0/stations"
-        f"/api/v1.0/tobs"
-        f"/api/v1.0/<start>"
-        f"/api/v1.0/<start>/<end>"
+        f"Welcome to Climate API!<br/><br>"
+        f"Available Routes:<br/><br>"
+        f"/api/v1.0/precipitation<br>"
+        f"/api/v1.0/stations<br>"
+        f"/api/v1.0/tobs<br>"
+        f"/api/v1.0/start<br>"
+        f"/api/v1.0/start/end"
     )
 
 @climateApp.route("/api/v1.0/precipitation")
 def precipitation():
     """ Return a JSON list of all precipitation data as a dictionary with date as key and precipitation as value"""
     # Query all precipitation
-    precipitation_results = session.query(Measurement.prcp).all()
+    precipitation_results = session.query(Measurement.date, Measurement.prcp).all()
+
+    # Convert list of tuples into normal list
+    precipitation_resultsList = list(np.ravel(precipitation_results))
 
     # Create a dictionary from the row data and append to a list of all_precipitation
-    all_precipitation = []
-    for precipitation in precipitation_results:
-        precipitation_dict = {}
-        precipitation_dict[precipitation.date] = precipitation.prcp
-        all_precipitation.append(precipitation_dict)
+    dates = precipitation_resultsList[0::2]
+    prcp = precipitation_resultsList[1::2]   
+    precipitation_dict = dict(zip(dates, prcp))
 
-    return jsonify(all_precipitation)
+    return jsonify(precipitation_dict)
 
 
 @climateApp.route("/api/v1.0/stations")
@@ -86,37 +87,38 @@ def tobs():
 
     return jsonify(all_tobs)
 
-@climateApp.route("/api/v1.0/<start>")
-def tobs_start(startDate):
-    """ Return TMIN, TAVE, and TMAX for all dates greater than and equal to startDate."""
-    # Query all tobs greater than and equal to startDate
-    minAveMaxTobs =  session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
-        filter(Measurement.date >= startDate).all()
 
-    # Convert list of tuples into normal list
-    minAveMaxTobsList = list(np.ravel(minAveMaxTobs))
+# @climateApp.route("/api/v1.0/<start>")
+# def tobs_start(startDate):
+#     """ Return TMIN, TAVE, and TMAX for all dates greater than and equal to startDate."""
+#     # Query all tobs greater than and equal to startDate
+#     minAveMaxTobs =  session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
+#         filter(Measurement.date >= startDate).all()
+
+#     # Convert list of tuples into normal list
+#     minAveMaxTobsList = list(np.ravel(minAveMaxTobs))
     
-    tmin = minAveMaxTobsList[0]
-    tave = minAveMaxTobsList[1]
-    tmax = minAveMaxTobsList[2]
+#     tmin = minAveMaxTobsList[0]
+#     tave = minAveMaxTobsList[1]
+#     tmax = minAveMaxTobsList[2]
 
-    return jsonify(tmin, tave, tmax)
+#     return jsonify(tmin, tave, tmax)
 
-@climateApp.route("/api/v1.0/<start>/<end>")
-def tobs_start_end(startDate, endDate):
-    """ Return TMIN, TAVE, and TMAX for dates between startDate and endDate inclusive."""
-    # Query all tobs between startDate and endDate inclusive
-    min_ave_max_tobs = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
-        filter(Measurement.date >= startDate).filter(Measurement.date <= endDate).all()
+# @climateApp.route("/api/v1.0/<start>/<end>")
+# def tobs_start_end(startDate, endDate):
+#     """ Return TMIN, TAVE, and TMAX for dates between startDate and endDate inclusive."""
+#     # Query all tobs between startDate and endDate inclusive
+#     min_ave_max_tobs = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
+#         filter(Measurement.date >= startDate).filter(Measurement.date <= endDate).all()
 
-    # Convert list of tuples into normal list
-    min_ave_max_tobs_list = list(np.ravel(min_ave_max_tobs))
+#     # Convert list of tuples into normal list
+#     min_ave_max_tobs_list = list(np.ravel(min_ave_max_tobs))
 
-    tmin = min_ave_max_tobs_list[0]
-    tave = min_ave_max_tobs_list[1]
-    tmax = min_ave_max_tobs_list[2]
+#     tmin = min_ave_max_tobs_list[0]
+#     tave = min_ave_max_tobs_list[1]
+#     tmax = min_ave_max_tobs_list[2]
 
-    return jsonify(tmin, tave, tmax)
+#     return jsonify(tmin, tave, tmax)
 
 
 if __name__ == '__main__':
