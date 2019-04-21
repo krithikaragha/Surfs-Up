@@ -28,7 +28,7 @@ To begin, use Python and SQLAlchemy to do basic climate analysis and data explor
 
 * Plot the results using the DataFrame `plot` method.
 
-  ![precipitation](ReadmeImages/precipitation.png)
+  ![precipitation](Images/precipitation.png)
 
 * Use Pandas to print the summary statistics for the precipitation data.
 
@@ -50,7 +50,7 @@ To begin, use Python and SQLAlchemy to do basic climate analysis and data explor
 
   * Plot the results as a histogram with `bins=12`.
 
-    ![station-histogram](ReadmeImages/station-histogram.png)
+    ![station-histogram](Images/station-histogram.png)
 
 ### Temperature Analysis (Optional)
 
@@ -64,7 +64,7 @@ To begin, use Python and SQLAlchemy to do basic climate analysis and data explor
 
   * Use the peak-to-peak (tmax-tmin) value as the y error bar (yerr).
 
-    ![temperature](ReadmeImages/temperature.png)
+    ![temperature](Images/temperature.png)
     
 - - -
 
