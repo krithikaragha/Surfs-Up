@@ -1,6 +1,6 @@
 # Import Dependecies
+import os
 import numpy as np
-
 import sqlalchemy
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
@@ -10,24 +10,8 @@ import datetime as dt
 from dateutil.relativedelta import relativedelta
 
 # Import Flask
-from flask import Flask, jsonify
-
-####################################
-# Database Setup
-####################################
-engine = create_engine("sqlite:///hawaii.sqlite")
-
-# Reflect an existing database into a new model
-Base = automap_base()
-# Reflect the tables
-Base.prepare(engine, reflect=True)
-
-# Save reference to the table
-Measurement = Base.classes.measurement
-Station = Base.classes.station
-
-# Create our session (link) from Python to the DB
-session = Session(engine)
+from flask import Flask, jsonify, render_template
+from flask_sqlalchemy import SQLAlchemy
 
 #####################################
 # Flask Setup
@@ -35,21 +19,32 @@ session = Session(engine)
 
 climateApp = Flask(__name__)
 
+####################################
+# Database Setup
+####################################
+climateApp.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'postgres://urdigfhxdarjoh:43a9cf1dc23b6559a374c5c5e71524bcd4208077b39d704a1db650eedb61cf8b@ec2-54-225-116-36.compute-1.amazonaws.com:5432/deodg0vhaa6b0j')
+db = SQLAlchemy(climateApp)
+# engine = create_engine("sqlite:///hawaii.sqlite")
+
+# Reflect an existing database into a new model
+Base = automap_base()
+# Reflect the tables
+Base.prepare(db.engine, reflect=True)
+
+# Save reference to the table
+Measurement = Base.classes.measurement
+Station = Base.classes.station
+
+# Create our session (link) from Python to the DB
+session = Session(db.engine)
+
 #####################################
 # Flask Routes
 #####################################
 
 @climateApp.route("/")
-def welcome():
-     return (
-        f"Welcome to Climate API!<br/><br>"
-        f"Available Routes:<br/><br>"
-        f"/api/v1.0/precipitation<br>"
-        f"/api/v1.0/stations<br>"
-        f"/api/v1.0/tobs<br>"
-        f"/api/v1.0/[start]<br>"
-        f"/api/v1.0/[start]/[end]"
-    )
+def index():
+    return render_template("index.html")
 
 @climateApp.route("/api/v1.0/precipitation")
 def precipitation():

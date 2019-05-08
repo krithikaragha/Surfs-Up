@@ -1,0 +1,9 @@
+body {
+    background-repeat: no-repeat;
+    background-position: inherit;
+    background-image: url("../img/bg-img.jpg");
+}
+
+.btn btn-primary btn-lg {
+    display: inline-block;
+}

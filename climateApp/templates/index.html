@@ -7,29 +7,16 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Surf's Up</title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../static/css/style.css">
 </head>
-<style>
-.routes {
-  z-index: 1;
-  min-height: 900px;
-  position: relative;
-  background: url(../img/bg-img.jpg) no-repeat center;
-  background-size: cover; 
-}
-</style>
 <body>
     <div class="container-fluid">
       <div class="jumbotron text-center">
         <h1>Surf's Up</h1>
-      </div>
-      <div class="routes">
-            <h1> JSON Data</h1>
-            <h3>Precipitation</h3>
-            <p><a class="btn btn-primary btn-lg" href="/api/v1.0/precipitation" role="button">Precipitation</a></p>
-            <h3>Station</h3>
-            <p><a class="btn btn-primary btn-lg" href="/api/v1.0/stations" role="button">Stations</a></p>
-            <h3>Temperature Observations</h3>
-            <p><a class="btn btn-primary btn-lg" href="/api/v1.0/tobs" role="button">Scrape New Data</a></p>
+        <br>
+        <a class="btn btn-primary btn-lg" href="/api/v1.0/precipitation" role="button">Precipitation</a>&nbsp;&nbsp;&nbsp;
+        <a class="btn btn-primary btn-lg" href="/api/v1.0/stations" role="button">Stations</a>&nbsp;&nbsp;&nbsp;
+        <a class="btn btn-primary btn-lg" href="/api/v1.0/tobs" role="button">Observations</a>
       </div>
     </div>
 </body>
