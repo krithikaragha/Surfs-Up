@@ -22,14 +22,13 @@ climateApp = Flask(__name__)
 ####################################
 # Database Setup
 ####################################
-climateApp.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'postgres://urdigfhxdarjoh:43a9cf1dc23b6559a374c5c5e71524bcd4208077b39d704a1db650eedb61cf8b@ec2-54-225-116-36.compute-1.amazonaws.com:5432/deodg0vhaa6b0j')
-db = SQLAlchemy(climateApp)
-# engine = create_engine("sqlite:///hawaii.sqlite")
+
+engine = create_engine("sqlite:///hawaii.sqlite")
 
 # Reflect an existing database into a new model
 Base = automap_base()
 # Reflect the tables
-Base.prepare(db.engine, reflect=True)
+Base.prepare(engine, reflect=True)
 
 # Save reference to the table
 Measurement = Base.classes.measurement
