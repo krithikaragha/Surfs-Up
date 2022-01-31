@@ -1,6 +1,18 @@
+# Surf's Up
+
+#### Data analysis project working with weather data from Honolulu, Hawaii to perform climate analysis & exploration
+ - Perform *exploratory climate analysis* by tinkering with data and present results by category: *precipitation*, *station* and *temperature*
+ - Wrap up results of exploration into a Python Flask based **Climate App** that includes *specific* routes to display each type of analysis
+
+### Import Dependencies
 
 
 ```python
+import numpy as np
+import pandas as pd
+
+import datetime as dt
+
 %matplotlib inline
 from matplotlib import style
 style.use('fivethirtyeight')
@@ -8,44 +20,43 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 ```
 
+### Connect to SQLite Database using SQLAlchemy ORM
 
-```python
-import numpy as np
-import pandas as pd
-```
+#### Import SQLAlchemy Dependencies
 
 
 ```python
-import datetime as dt
-```
-
-# Reflect Tables into SQLAlchemy ORM
-
-
-```python
-# Python SQL toolkit and Object Relational Mapper
 import sqlalchemy
+
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, func
 ```
 
+#### Determine dates in the range of 3-15 for your vacation
+
+<blockquote> Date Range will be 2014-07-20 to 2014-07-28 </blockquote>
+
+#### SQLAlchemy database connections
+
 
 ```python
+# Create an 'engine' object and plug in DB Type (and connector)
 engine = create_engine("sqlite:///Resources/hawaii.sqlite")
 ```
 
 
 ```python
-# reflect an existing database into a new model
+# Extend the automap_base to access existing data models
 Base = automap_base()
-# reflect the tables
+
+# Reflect the tables in the DB
 Base.prepare(engine, reflect=True)
 ```
 
 
 ```python
-# We can view all of the classes that automap found
+# Display the classnames of the data models (names of the tables in DB)
 Base.classes.keys()
 ```
 
@@ -58,31 +69,111 @@ Base.classes.keys()
 
 
 ```python
-# Save references to each table
+# Create references to the classnames of the data models (variables to refer to DB tables)
 Measurement = Base.classes.measurement
 Station = Base.classes.station
 ```
 
 
 ```python
-# Create our session (link) from Python to the DB
+# Create and bind a session (persistent DB connection) to the engine
 session = Session(engine)
 ```
 
-# Exploratory Climate Analysis
+## Exploratory Climate Analysis
+
+### Precipitation Analysis
+
+#### Design a query to retrieve the last 12 months of precipitation data
 
 
 ```python
-# Design a query to retrieve the last 12 months of precipitation data and plot the results
-datequery = session.query(Measurement.id, Measurement.date, Measurement.prcp).filter(Measurement.date.between('2016-08-23', '2017-08-23')).order_by(Measurement.date).all()
-# datequery
+# Pass in classname of data model, filter precipitation data for the specified date range and sort values by 'date'
 
-# Save the query results as a Pandas DataFrame and set the index to the date column
-precipitation_df = pd.DataFrame(datequery)
-# precipitation_df.head()
+prcp_query = session.query(Measurement.id, Measurement.prcp, Measurement.date).\
+    filter(Measurement.date.between('2016-08-23', '2017-08-23')).\
+    order_by(Measurement.date).\
+    all()                                
+```
 
-# Use Pandas Plotting with Matplotlib to plot the data
-precipitation_df.plot.bar('date', 'prcp', width=18, color='blue')
+#### Save the query results as a pandas dataframe and set the 'date' column as index
+
+
+```python
+prcp_df = pd.DataFrame(prcp_query)
+prcp_df.set_index('id', inplace=True)
+prcp_df.head()
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>prcp</th>
+      <th>date</th>
+    </tr>
+    <tr>
+      <th>id</th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2364</th>
+      <td>0.00</td>
+      <td>2016-08-23</td>
+    </tr>
+    <tr>
+      <th>5091</th>
+      <td>0.15</td>
+      <td>2016-08-23</td>
+    </tr>
+    <tr>
+      <th>7331</th>
+      <td>0.05</td>
+      <td>2016-08-23</td>
+    </tr>
+    <tr>
+      <th>8825</th>
+      <td>NaN</td>
+      <td>2016-08-23</td>
+    </tr>
+    <tr>
+      <th>11851</th>
+      <td>0.02</td>
+      <td>2016-08-23</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+#### Plot the precipitation data stored in the dataframe
+
+
+```python
+# Using Matplotlib to plot precipitation data
+
+prcp_df.plot.bar('date', 'prcp', width=18, color='blue')
 plt.xlabel('Date')
 plt.tick_params (
     axis = 'x',
@@ -92,68 +183,77 @@ plt.tick_params (
     labelbottom = False)
 plt.ylabel("Rain in Inches")
 plt.title("Precipitation Analysis\n 08/24/16 to 08/24/17")
-plt.legend(["Precipitation"])
+plt.legend(["Precipitation"], loc='upper right')
 plt.grid(True)
-plt.savefig("Images/Precipitation Analysis.png")
+plt.savefig("output/Prcp Analysis.png")
 plt.show()
 ```
 
 
-![png](output/output_11_0.png)
+![png](output/output_20_0.png)
 
 
 
 ```python
-# Use Pandas to calcualte the summary statistics for the precipitation data
-precipitation_df.describe()
+# Use pandas to calcualte the summary statistics for the precipitation data
+prcp_df.describe()
 ```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
       <th></th>
-      <th>id</th>
       <th>prcp</th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <th>count</th>
-      <td>2230.000000</td>
       <td>2021.000000</td>
     </tr>
     <tr>
       <th>mean</th>
-      <td>10158.570404</td>
       <td>0.177279</td>
     </tr>
     <tr>
       <th>std</th>
-      <td>5603.500203</td>
       <td>0.461190</td>
     </tr>
     <tr>
       <th>min</th>
-      <td>2364.000000</td>
       <td>0.000000</td>
     </tr>
     <tr>
       <th>25%</th>
-      <td>5287.250000</td>
       <td>0.000000</td>
     </tr>
     <tr>
       <th>50%</th>
-      <td>8930.500000</td>
       <td>0.020000</td>
     </tr>
     <tr>
       <th>75%</th>
-      <td>14750.750000</td>
       <td>0.130000</td>
     </tr>
     <tr>
       <th>max</th>
-      <td>19550.000000</td>
       <td>6.700000</td>
     </tr>
   </tbody>
@@ -162,33 +262,56 @@ precipitation_df.describe()
 
 
 
+### Station Analysis
 
-```python
-# Design a query to show how many stations are available in this dataset?
-stationquery = session.query(Station.station, Station.station).count()
-print(f"Total number of stations: {stationquery}")
-```
-
-    Total number of stations: 9
-
+#### Design a query to calculate total number of stations
 
 
 ```python
-# What are the most active stations? (i.e. what stations have the most rows)?
-# List the stations and the counts in descending order.
-activeStations = session.query(Measurement.station, func.count(Measurement.tobs)).group_by(Measurement.station).order_by(func.count(Measurement.tobs).desc())
-# activeStations.all()
+stn_query = session.query(func.count(Station.station)).all()
 
-activeStationsList = list(activeStations)
-activeStations_df = pd.DataFrame(activeStationsList, columns = ['Station', 'Count'])
-activeStations_df
+print(f"Total count of stations is {stn_query[0][0]}")
 ```
+
+    Total count of stations is 9
+
+
+#### Design a query to find the most active stations
+
+
+```python
+actv_stn_query = session.query(Measurement.station, func.count(Measurement.tobs)).\
+    group_by(Measurement.station).\
+    order_by(func.count(Measurement.tobs).desc())
+
+# List the stations and observation counts in descending order
+actv_stn_df = pd.DataFrame(actv_stn_query, columns=['station', 'num_obs'])
+actv_stn_df.head()
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
       <th></th>
-      <th>Station</th>
-      <th>Count</th>
+      <th>station</th>
+      <th>num_obs</th>
     </tr>
   </thead>
   <tbody>
@@ -217,25 +340,83 @@ activeStations_df
       <td>USC00516128</td>
       <td>2612</td>
     </tr>
-    <tr>
-      <th>5</th>
-      <td>USC00514830</td>
-      <td>2202</td>
+  </tbody>
+</table>
+</div>
+
+
+
+<blockquote> From the above dataframe, we conclude station 'USC00519281' has highest number of observations at 2772 </blockquote>
+
+#### Design a query to retrieve the last 12 months of temperature observation data
+
+
+```python
+tobs_query = session.query(Measurement.id, Measurement.tobs, Measurement.date).\
+    filter(Measurement.date.between('2016-08-23', '2017-08-23')).\
+    order_by(Measurement.date).\
+    all()
+
+tobs_df = pd.DataFrame(tobs_query)
+tobs_df.set_index('id', inplace=True)
+tobs_df.head()
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>tobs</th>
+      <th>date</th>
     </tr>
     <tr>
-      <th>6</th>
-      <td>USC00511918</td>
-      <td>1979</td>
+      <th>id</th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2364</th>
+      <td>81.0</td>
+      <td>2016-08-23</td>
     </tr>
     <tr>
-      <th>7</th>
-      <td>USC00517948</td>
-      <td>1372</td>
+      <th>5091</th>
+      <td>76.0</td>
+      <td>2016-08-23</td>
     </tr>
     <tr>
-      <th>8</th>
-      <td>USC00518838</td>
-      <td>511</td>
+      <th>7331</th>
+      <td>80.0</td>
+      <td>2016-08-23</td>
+    </tr>
+    <tr>
+      <th>8825</th>
+      <td>80.0</td>
+      <td>2016-08-23</td>
+    </tr>
+    <tr>
+      <th>11851</th>
+      <td>80.0</td>
+      <td>2016-08-23</td>
     </tr>
   </tbody>
 </table>
@@ -245,68 +426,57 @@ activeStations_df
 
 
 ```python
-# Using the station id from the previous query, calculate the lowest temperature recorded, 
-# highest temperature recorded, and average temperature most active station?
-lowestTemperature = session.query(func.min(Measurement.tobs)).group_by(Measurement.station).order_by(func.count(Measurement.tobs).desc()).first()
-print(f"The lowest temperature recorded is: {lowestTemperature}")
+# Return the station with the maximum number of temperature observations
+maxTempStn_query = session.query(Measurement.station, func.max(Measurement.tobs)).\
+    filter(Measurement.prcp > 0).\
+    first()
 
-highestTemperature = session.query(func.max(Measurement.tobs)).group_by(Measurement.station).order_by(func.count(Measurement.tobs).desc()).first()
-print(f"The highest temperature recorded is: {highestTemperature}")
+maxTempStn = maxTempStn_query[0]
 
-averageTemperature = session.query(func.avg(Measurement.tobs)).group_by(Measurement.station).order_by(func.count(Measurement.tobs).desc()).first()
-print(f"The average temperature recorded is: {averageTemperature}")
-```
+# Return temperature observations of the last 12 months for the above station
+tempFreq_maxStn_query = session.query(Measurement.date, Measurement.tobs).\
+    filter_by(station = maxTempStn).\
+    filter(Measurement.date.between('2016-08-23', '2017-08-23')).\
+    filter(Measurement.prcp > 0).\
+    all()
 
-    The lowest temperature recorded is: (54.0,)
-    The highest temperature recorded is: (85.0,)
-    The average temperature recorded is: (71.66378066378067,)
+tempFreq_maxStn_dict = dict(tempFreq_maxStn_query)
+tempFreqs = tempFreq_maxStn_dict.values()
 
-
-
-```python
-# Choose the station with the highest number of temperature observations.
-highestTemperatureStation = session.query(Measurement.station, func.max(Measurement.tobs)).filter(Measurement.prcp > 0).first()
-highestTemperatureStation
-
-# Query the last 12 months of temperature observation data for this station and plot the results as a histogram
-tempsObserved12Months = session.query(Measurement.date, Measurement.tobs).filter(Measurement.prcp > 0).filter(Measurement.date.between('2016-08-23', '2017-08-23')).all()
-tempsObserved12Months_dict = dict(tempsObserved12Months)
-tempsObserved12Months_dates = list(tempsObserved12Months_dict.keys())
-tempsObserved12Months_temps = list(tempsObserved12Months_dict.values())
-
-plt.hist(tempsObserved12Months_temps)
+# Plot those temperature observations on a histogram with bins=12
+plt.hist(tempFreqs)
 plt.title("Frequency of Temperature \n for Station USC00519397")
 plt.xlabel("Temperature")
 plt.ylabel("Frequency")
 plt.legend(['tobs'])
-plt.savefig("Images/Frequency of Temperature \n for Station USC00519397.jpg")
+plt.savefig("output/Temperature Frequencies For Station USC00519397.png")
 plt.show()
 ```
 
 
-![png](output/output_16_0.png)
+![png](output/output_30_0.png)
 
+
+### Temperature Analysis
+
+<blockquote> A function called <b>calc_temps</b> will accept a startdate and enddate in the format <b><i>'%Y-%m-%d'</i></b> and return the <i>minimum</i>, <i>maximum</i> and <i>average</i> temperatures for that range of dates </blockquote>
 
 
 ```python
-# This function called `calc_temps` will accept start date and end date in the format '%Y-%m-%d' 
-# and return the minimum, average, and maximum temperatures for that range of dates
 def calc_temps(start_date, end_date):
     """TMIN, TAVG, and TMAX for a list of dates.
-    
+
     Args:
         start_date (string): A date string in the format %Y-%m-%d
         end_date (string): A date string in the format %Y-%m-%d
-        
+
     Returns:
         TMIN, TAVE, and TMAX
     """
-    
+
     results = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
         filter(Measurement.date >= start_date).filter(Measurement.date <= end_date).all()
-    
     resultsList = list(np.ravel(results))
-    
     return resultsList
 
 # function usage example
@@ -316,111 +486,147 @@ print(calc_temps('2012-02-28', '2012-03-05'))
     [62.0, 69.57142857142857, 74.0]
 
 
+#### Use the calc_temps function to calculate the min, avg, and max temperatures for your trip using the matching dates from the previous year
+
 
 ```python
-# Use your previous function `calc_temps` to calculate the tmin, tavg, and tmax 
-# for your trip using the previous year's data for those same dates.
 min_avg_max_temps = calc_temps('2016-08-23', '2017-08-23')
+
 tmin = min_avg_max_temps[0]
 tave = min_avg_max_temps[1]
 tmax = min_avg_max_temps[2]
 ```
 
+#### Plot the min, avg, and max temperature from your previous query as a bar chart
+
 
 ```python
-# Plot the results from your previous query as a bar chart. 
-# Use "Trip Avg Temp" as your Title
-# Use the average temperature for the y valueh
-# Use the peak-to-peak (tmax-tmin) value as the y error bar (yerr)
+# Use the average temperature as the bar height
 
 x = ["Hawaii Temperature"]
+
+# Use the peak-to-peak (tmax-tmin) value as the y error bar (yerr)
+
 yerr = tmax - tave
 
 plt.bar(x, tave, color="coral", alpha=0.5, yerr=yerr)
 plt.title("Trip Avg Temp")
-plt.savefig("Images/Trip Avg Temp.jpg")
+plt.savefig("output/Trip Avg Temp.png")
 plt.show()
 ```
 
 
-![png](output/output_19_0.png)
+![png](output/output_36_0.png)
 
+
+### Climate Analysis for Vacation Dates
+
+#### Calculate rainfall per weather station for trip dates selected
+
+<blockquote> Sort results by descending order of precipitation and list <i> station, name, latitude, longitude </i> and <i> elevation </i> for the columns </blockquote>
 
 
 ```python
-# Calculate the rainfall per weather station for your trip dates using the previous year's matching dates.
-# Sort this in descending order by precipitation amount and list the station, name, latitude, longitude, and elevation
+rainfallPerStation = session.query(Station.name, Measurement.station, func.sum(Measurement.prcp), Station.latitude, Station.longitude).\
+    group_by(Measurement.station).\
+    filter(Station.station == Measurement.station).\
+    filter(Measurement.date.between('2014-07-20', '2014-07-28')).\
+    all()
 
-rainfallPerStation = session.query(Station.name, Measurement.station, func.sum(Measurement.prcp), Station.latitude, Station.longitude).group_by(Measurement.station).filter(Station.station == Measurement.station).filter(Measurement.date.between('2016-08-23', '2017-08-23')).all()
-
-rainfall_df = pd.DataFrame(rainfallPerStation, columns = ['Name', 'Station', 'Rainfall', 'Latitude', 'Longitude'])
+rainfall_df = pd.DataFrame(rainfallPerStation, columns = ['name', 'statiob', 'prcp', 'lat', 'long'])
 rainfall_df
 ```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
       <th></th>
-      <th>Name</th>
-      <th>Station</th>
-      <th>Rainfall</th>
-      <th>Latitude</th>
-      <th>Longitude</th>
+      <th>name</th>
+      <th>statiob</th>
+      <th>prcp</th>
+      <th>lat</th>
+      <th>long</th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <th>0</th>
+      <td>HONOLULU OBSERVATORY 702.2, HI US</td>
+      <td>USC00511918</td>
+      <td>1.12</td>
+      <td>21.31520</td>
+      <td>-157.99920</td>
+    </tr>
+    <tr>
+      <th>1</th>
       <td>KANEOHE 838.1, HI US</td>
       <td>USC00513117</td>
-      <td>48.51</td>
+      <td>6.41</td>
       <td>21.42340</td>
       <td>-157.80150</td>
     </tr>
     <tr>
-      <th>1</th>
+      <th>2</th>
       <td>KUALOA RANCH HEADQUARTERS 886.9, HI US</td>
       <td>USC00514830</td>
-      <td>33.24</td>
+      <td>12.45</td>
       <td>21.52130</td>
       <td>-157.83740</td>
     </tr>
     <tr>
-      <th>2</th>
+      <th>3</th>
       <td>MANOA LYON ARBO 785.2, HI US</td>
       <td>USC00516128</td>
-      <td>147.81</td>
+      <td>7.96</td>
       <td>21.33310</td>
       <td>-157.80250</td>
     </tr>
     <tr>
-      <th>3</th>
+      <th>4</th>
       <td>PEARL CITY, HI US</td>
       <td>USC00517948</td>
-      <td>4.59</td>
+      <td>0.00</td>
       <td>21.39340</td>
       <td>-157.97510</td>
     </tr>
     <tr>
-      <th>4</th>
+      <th>5</th>
       <td>WAIHEE 837.5, HI US</td>
       <td>USC00519281</td>
-      <td>70.03</td>
+      <td>9.00</td>
       <td>21.45167</td>
       <td>-157.84889</td>
     </tr>
     <tr>
-      <th>5</th>
+      <th>6</th>
       <td>WAIKIKI 717.2, HI US</td>
       <td>USC00519397</td>
-      <td>16.09</td>
+      <td>1.89</td>
       <td>21.27160</td>
       <td>-157.81680</td>
     </tr>
     <tr>
-      <th>6</th>
+      <th>7</th>
       <td>WAIMANALO EXPERIMENTAL FARM, HI US</td>
       <td>USC00519523</td>
-      <td>38.01</td>
+      <td>6.02</td>
       <td>21.33556</td>
       <td>-157.71139</td>
     </tr>
@@ -429,3 +635,11 @@ rainfall_df
 </div>
 
 
+
+#### Conclusions to plan for a Trip in July 2014
+
+<blockquote> Based on rainfall observations <i> per station </i> for my pre-selected vacation dates, I can safely conclude:
+
+    1. Choose any area closer to the 'Pearl' weather station if I want to spend all day outside so as to maximize my chances of "sun, sand and surf"
+    2. Choose any area closer to the 'Kualoa Ranch Headquarters' weather station if I choose to relax and stay indoors since chances of heavy rainfall are higher on average
+</blockquote>
